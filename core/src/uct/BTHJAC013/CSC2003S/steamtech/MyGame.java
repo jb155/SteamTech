@@ -4,12 +4,12 @@ import com.badlogic.gdx.Game;
 
 public class MyGame extends Game {
 	MainMenuScreen mainMenuScreen;
-	AnotherScreen anotherScreen;
+	GameScreen gameScreen;
 
 	@Override
 	public void create () {
 		mainMenuScreen = new MainMenuScreen(this);
-		anotherScreen = new AnotherScreen(this);
-		setScreen(anotherScreen);
+		gameScreen = new GameScreen(this);
+		setScreen(gameScreen);
 	}
 }

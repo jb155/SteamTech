@@ -23,7 +23,7 @@ public class MainMenuScreen implements Screen {
     public void render(float delta) {
         // update and draw stuff
         if (Gdx.input.justTouched()) // use your own criterion here
-            game.setScreen(game.anotherScreen);
+            game.setScreen(game.gameScreen);
     }
 
 
