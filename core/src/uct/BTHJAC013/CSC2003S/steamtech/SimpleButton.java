@@ -16,8 +16,8 @@ public class SimpleButton {
         skin.setSize(width, height);
     }
 
-    public void update (SpriteBatch batch, float input_x, float input_y) {
-        checkIfClicked(input_x, input_y);
+    public void update (SpriteBatch batch, float x, float y) {
+        skin.setPosition(x, y);
         skin.draw(batch); // draw the button
     }
 
@@ -29,5 +29,9 @@ public class SimpleButton {
             }
         }
         return false;
+    }
+
+    public float spriteSize(){
+        return skin.getWidth();
     }
 }

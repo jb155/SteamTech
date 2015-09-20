@@ -13,7 +13,7 @@ public class Map {
     private int fieldWidth;
     private int fieldHeight;
 
-    private int moduleDatabaseAmount = 5;
+    private int moduleDatabaseAmount = 6;
 
     private int mapModuleCount = 4;
 

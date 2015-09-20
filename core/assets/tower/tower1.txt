@@ -1,3 +1,5 @@
-basicTower.png
-3
+towerMedium.png
+towerMediumButton.png
+2
+2
 2

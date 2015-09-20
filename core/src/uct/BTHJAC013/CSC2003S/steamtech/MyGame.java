@@ -10,6 +10,6 @@ public class MyGame extends Game {
 	public void create () {
 		mainMenuScreen = new MainMenuScreen(this);
 		gameScreen = new GameScreen(this);
-		setScreen(gameScreen);
+		setScreen(mainMenuScreen);
 	}
 }
