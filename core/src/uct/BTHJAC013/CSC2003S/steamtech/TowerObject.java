@@ -140,10 +140,11 @@ public class TowerObject implements Cloneable{
             for (int i = 0; i < enemies.size(); i++) {
                 EnemyUnit a = enemies.get(i);
                 int[] temp = a.getPos();
-                int x = (xPos) - (temp[0] / 30);
-                int y = (temp[1] / 30) - (yPos);
-                if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) <= radius * 2) {
-                    targetAngle = (int) (Math.atan2(x * 30, y * 30) * 360 / (2 * Math.PI));
+                int x = (xPos*30) - (temp[0]);
+                int y = (temp[1]) - (yPos*30);
+                //int x = ((xPos*30-(330))/30) - ((temp[0]-330) / 30);
+                //int y = ((temp[1]-330) / 30) - ((yPos*30-(330))/30);
+                if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) <= radius*60) {
                     //System.out.println("Enemy in range");
                     targetLocked = true;
                     target = a;
@@ -154,10 +155,10 @@ public class TowerObject implements Cloneable{
                 }
             }
         }else{ //Has target
-            int x = (xPos) - (target.getPos()[0] / 30);
-            int y = (target.getPos()[1] / 30) - (yPos);
-            if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) <= radius * 2) {
-                targetAngle = (float) (Math.atan2(x * 30, y * 30) * 360 / (2 * Math.PI));
+            int x = (xPos*30) - (target.getPos()[0]);
+            int y = (target.getPos()[1]) - (yPos*30)-45;
+            if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) <= radius*60) {
+                targetAngle = (float) (Math.atan2(x, y) * 360 / (2 * Math.PI));
                 //System.out.println("Enemy in range");
                 targetLocked = true;
             }else{
@@ -166,13 +167,17 @@ public class TowerObject implements Cloneable{
             }
         }
 
+        System.out.println(targetAngle);
 
         //else "seek"
+
+
+        //fire
         if(!targetLocked){
             targetAngle=0;
         }else{
             if(System.currentTimeMillis()>lastFired+rof){
-                projectiles.add(new Projectile(xPos*30,yPos*30, 1, 1, "bullet.png",angle, 500));
+                projectiles.add(new Projectile(xPos*30,yPos*30, 1, 3, "bullet.png",angle, 2000));
                 lastFired = System.currentTimeMillis();
             }
         }
@@ -187,9 +192,9 @@ public class TowerObject implements Cloneable{
         //ensure turret is pointing correct angle
         if(angle!=targetAngle){
             if(angle<targetAngle){
-                rotateTower(10);
+                rotateTower(5);
             }else{
-                rotateTower(-10);
+                rotateTower(-5);
             }
         }
 

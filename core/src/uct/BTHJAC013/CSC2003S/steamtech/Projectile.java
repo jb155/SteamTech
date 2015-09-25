@@ -20,29 +20,23 @@ public class Projectile {
         pos = new int[] {x,y+50};
         damage = dmg;
         speed = spd;
+
         sprite = new Sprite (new Texture(tex));
-        //sprite.setSize(45,203);
-        //sprite.setOrigin(x - sprite.getWidth()/2, y-sprite.getHeight()/2);
-        //sprite.setOrigin(50, 125);
-        sprite.rotate(angle);
-        //sprite.setOrigin(x,y);
-        sprite.setPosition(x,y);
-        sprite.scale(0.1f);
-        sprite.setOrigin(sprite.getWidth() / 2,sprite.getHeight()/2);
+        sprite.setSize(10,25);
+        sprite.setOrigin(5,12.5f);
+        sprite.setRotation(agl);
 
         angle = agl;
 
         life = lf;
         spawnTime = System.currentTimeMillis();
-        //System.out.println("New bullet:" + spawnTime);
-        //System.out.println ("wheeeee " + angle);
-
         tick();
     }
 
     public boolean tick(){
-        pos[0]+= (int) (speed * Math.sin(angle));
-        pos[1]+= (int) (speed * Math.cos(angle));
+        pos[1]-= (int) (Math.round(-speed * Math.cos(angle/360 * (2 * Math.PI))));
+        pos[0]+= (int) (Math.round(-speed * Math.sin(angle/360 * (2 * Math.PI))));
+
         sprite.setPosition(pos[0], pos[1]);
 
 

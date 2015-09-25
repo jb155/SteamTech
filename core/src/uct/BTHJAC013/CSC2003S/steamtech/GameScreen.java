@@ -243,7 +243,7 @@ public class GameScreen implements Screen {
 
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT))  {
             for (int i = 0; i < towersOnField.size(); i++) {
-                towersOnField.get(i).rotateTower(10);
+                enemyUnitsOnField.add(new EnemyUnit((int)(Math.random()*enemyTypes),20,20,map.getSpawnPoint()));
             }
         }
 
