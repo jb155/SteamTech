@@ -21,6 +21,10 @@ public class SimpleButton {
         skin.draw(batch); // draw the button
     }
 
+    public void update(SpriteBatch batch){
+        skin.draw(batch); // draw the button
+    }
+
     public boolean checkIfClicked (float ix, float iy) {
         if (ix > skin.getX() && ix < skin.getX() + skin.getWidth()) {
             if (iy > skin.getY() && iy < skin.getY() + skin.getHeight()) {

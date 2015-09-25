@@ -18,6 +18,7 @@ public class Map {
     private int mapModuleCount = 4;
 
     public int[][] playingField;
+    private int[] spawnPoint;
 
     public Map(int width, int height){
         mapModules = new ArrayList<MapModule>();
@@ -82,6 +83,7 @@ public class Map {
         for(int y = 0; y < moduleHeight; y++){
             if(playingField[1][y]==0){
                 playingField[0][y]=-1;
+                spawnPoint = new int[]{0,y};
             }else{
                 playingField[0][y]=1;
             }
@@ -96,6 +98,9 @@ public class Map {
                 playingField[fieldWidth-1][y]=1;
             }
         }
+    }
+    public int[] getSpawnPoint(){
+        return spawnPoint;
     }
 
 }

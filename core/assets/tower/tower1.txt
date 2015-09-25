@@ -1,5 +1,5 @@
 towerMedium.png
 towerMediumButton.png
 2
-2
+1000
 2

@@ -31,7 +31,7 @@ public class GameScreen implements Screen {
     private Texture wallTexture;
     private Texture baseTexture;
     private Texture enemySpawnTexture;
-    private Texture floorTexture;
+    private Sprite floorSprite;
 
     private Sprite mainHUD;
 
@@ -49,13 +49,25 @@ public class GameScreen implements Screen {
     private TowerObject[] towerIngameDB;
     private ArrayList<TowerObject> towersOnField;
 
+    private ArrayList<EnemyUnit> enemyUnitsOnField;
+    private int enemyWaveCount = 5;
+    private int waveGrowthNum = 3;
+    private int currentWaveNumber = 0;
+    private int waveNum = 0;
+    private int spawnRate = 1000;
+    private long mosnsterLastSpawned = 0;
+    private boolean spawnMonsters = false;
+    private int enemyTypes = 2;
+
     //controls
     private boolean leftMouseDown = false;
     private int buildTowerSelected = -1;
     private TowerObject tempTower;
+    private SimpleButton readyButton;
 
     //Game values
     private int steamPoints = 10;
+    private int baseHP = 10;
 
     //HUD
     private BitmapFont font;
@@ -67,9 +79,12 @@ public class GameScreen implements Screen {
         wallTexture = new Texture("wallBasic.png");
         baseTexture = new Texture("base.png");
         enemySpawnTexture = new Texture("enemySpawn.png");
-        floorTexture = new Texture("floor.png");
+        floorSprite = new Sprite(new Texture("floor.png"));
+        floorSprite.setSize(tileSize,tileSize);
+
         towerRangeRaius = new Sprite (new Texture("selectRing.png"));
         towerRangeRaius.setScale(0.1f);
+
         turretMountSprite = new Sprite(new Texture("TurretPlatform.png"));
         turretMountSprite.setSize(tileSize,tileSize);
 
@@ -83,6 +98,12 @@ public class GameScreen implements Screen {
         //Steam Points
         font = new BitmapFont();
         font.setColor(Color.RED);
+
+        //Ready button
+        readyButton = new SimpleButton(new Texture("ReadyButton.png"), 280, 0, 100, 50);
+
+        //Enemies
+        enemyUnitsOnField = new ArrayList<EnemyUnit>();
 
         setupTowers();
         System.out.println("Towers setup completed");
@@ -128,44 +149,68 @@ public class GameScreen implements Screen {
 
         // draw tile map
         // go over each row bottom to top
-        for(int y = 0; y < mapHeight; y++) {
+        for (int y = 0; y < mapHeight; y++) {
             // go over each column left to right
-            for(int x = 0; x < mapWidth; x++) {
+            for (int x = 0; x < mapWidth; x++) {
                 // Floor
-                if(map.playingField[x][y] == 0) {
-                    batch.draw(floorTexture, x * tileSize, y * tileSize + toolbarHieght);
+                if (map.playingField[x][y] == 0) {
+                    floorSprite.setPosition(x * tileSize, y * tileSize + toolbarHieght);
+                    floorSprite.draw(batch);
                 }
                 // wall
-                if(map.playingField[x][y] == 1) {
+                if (map.playingField[x][y] == 1) {
                     batch.draw(wallTexture, x * tileSize, y * tileSize + toolbarHieght);
                 }
                 // Turret Mounting point
-                if(map.playingField[x][y] == 2) {
+                if (map.playingField[x][y] == 2) {
                     turretMountSprite.setPosition(x * tileSize, y * tileSize + toolbarHieght);
                     turretMountSprite.draw(batch);
                     //batch.draw(turretMountTexture, x * tileSize, y * tileSize + toolbarHieght);
                 }
                 //enemySpawn
-                if(map.playingField[x][y] == -1) {
+                if (map.playingField[x][y] == -1) {
                     batch.draw(enemySpawnTexture, x * tileSize, y * tileSize + toolbarHieght);
                 }
                 //basse
-                if(map.playingField[x][y] == -2) {
+                if (map.playingField[x][y] == -2) {
                     batch.draw(baseTexture, x * tileSize, y * tileSize + toolbarHieght);
                 }
                 // draw other types here...
             }
         }
-
-        //Towers
-        for(int i = 0; i < towersOnField.size();i++){
-            TowerObject temp = towersOnField.get(i);
-
-            temp.getSprite(temp.getxPos()* tileSize,temp.getyPos()* tileSize+ toolbarHieght).draw(batch);
-            //batch.draw(temp.getSprite(), temp.getxPos(), temp.getyPos()+toolbarHieght,30,30);
+        //Enemies
+        if((spawnMonsters)&&(waveNum<=enemyWaveCount)&&(currentWaveNumber<waveGrowthNum*waveNum)){
+            //spawn monsters;
+            if(System.currentTimeMillis()>mosnsterLastSpawned+spawnRate){
+                mosnsterLastSpawned = System.currentTimeMillis();
+                enemyUnitsOnField.add(new EnemyUnit((int)(Math.random()*enemyTypes),20,20,map.getSpawnPoint()));
+                currentWaveNumber++;
+                System.out.println ("Spawn enemy");
+            }
+        }
+        //go through enemies and check if dead (if they are...remove them and also render them
+        for (int i = 0; i < enemyUnitsOnField.size(); i++){
+            enemyUnitsOnField.get(i).getSprite().draw(batch);
+            if(!enemyUnitsOnField.get(i).tick()){
+                enemyUnitsOnField.remove(i);
+            }
         }
 
-        if(leftMouseDown){
+        //Towers
+        for (int i = 0; i < towersOnField.size(); i++) {
+            TowerObject temp = towersOnField.get(i);
+
+            //temp.gameTick(enemyUnitsOnField);
+
+            temp.getSprite(temp.getxPos() * tileSize, temp.getyPos() * tileSize + toolbarHieght).draw(batch);
+            //batch.draw(temp.getSprite(), temp.getxPos(), temp.getyPos()+toolbarHieght,30,30);
+            ArrayList<Projectile> tempBullets = towersOnField.get(i).gameTick(enemyUnitsOnField);   //Get all the bullets of the tower and render its bullets
+            for(Projectile p: tempBullets){
+                p.getSprite().draw(batch);
+            }
+        }
+
+        if (leftMouseDown) {
             int x = Gdx.input.getX() - tempTower.getSpriteWidth() / 2;
             int y = Gdx.graphics.getHeight() - Gdx.input.getY() - tempTower.getSpriteWidth() / 2;
             //radius
@@ -175,64 +220,84 @@ public class GameScreen implements Screen {
             //towerRangeRaius.setScale(0.1f);
             //tower
             tempTower.setPosition(x, y);
-            tempTower.getSprite(x,y).draw(batch);
+            tempTower.getSprite(x, y).draw(batch);
         }
 
         //Finally teh HUD
         //Hud
-        mainHUD.setSize(660,350);
+        mainHUD.setSize(660, 350);
         mainHUD.draw(batch);
         //towers
-        for(int i = 0; i < towerIngameDB.length; i++){
+        for (int i = 0; i < towerIngameDB.length; i++) {
             //batch.draw(basicTurretTexture,0,0,50,50);
-            towerIngameDB[i].updateButton(batch,i*50+50,0);
+            towerIngameDB[i].updateButton(batch, i * 50 + 50, 0);
         }
-        font.draw(batch, "SP:"+steamPoints, 600, 20);
+        font.draw(batch, "SP:" + steamPoints, 600, 20);
+
+        if(!spawnMonsters) {
+            readyButton.update((SpriteBatch) batch);
+        }
 
         batch.end();
+        //END OF RENDER****************************************************************************************************************************
+
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT))  {
+            for (int i = 0; i < towersOnField.size(); i++) {
+                towersOnField.get(i).rotateTower(10);
+            }
+        }
 
 
-        if(Gdx.input.isButtonPressed(Input.Buttons.LEFT)){
+        if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
             //runs though buttons
             for (int i = 0; i < towerCount; i++) {  //Steps through all the buttons
                 if (towerIngameDB[i].checkIfClicked(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) {
 
-                    if(buildTowerSelected!=i) {
+                    if (buildTowerSelected != i) {
                         buildTowerSelected = i;
                         try {
-                            if(!leftMouseDown) {    //To avoid that if you move the selction over the other build options that it changes
+                            if (!leftMouseDown) {    //To avoid that if you move the selction over the other build options that it changes
                                 tempTower = (TowerObject) towerIngameDB[i].clone();
                             }
-                        }catch(Exception e){
+                        } catch (Exception e) {
 
                         }
                     }
                     leftMouseDown = true;
-                }else{
+                } else {
 
                 }
             }
             //Upgrade dem tower
-            if(!leftMouseDown) {    //This just makes sure that it doesn't try to upgrade the tower as the mouse moves over another tower (while trying to place something else)
+            if (!leftMouseDown) {    //This just makes sure that it doesn't try to upgrade the tower as the mouse moves over another tower (while trying to place something else)
                 upgradeTower();
             }
-
-        }else{
-            if(leftMouseDown) {
+            //Ready up
+            //Check if player ready (to start next wave of enemies
+            if (!leftMouseDown) {
+                if ((readyButton.checkIfClicked(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) && !spawnMonsters) {
+                    spawnMonsters = true;
+                    waveNum++;
+                    if (waveNum < enemyWaveCount) {
+                        enemyWaveCount = waveNum * waveGrowthNum;
+                    }
+                }
+            }
+        } else {
+            if (leftMouseDown) {
                 addTurretToPlayingField();
                 leftMouseDown = false;
             }
         }
 
 
-        if(Gdx.input.isButtonPressed(Input.Buttons.RIGHT)){
+        if (Gdx.input.isButtonPressed(Input.Buttons.RIGHT)) {
             removeTurretToPlayingField();
         }
 
         //have the turrets do their things
 
     }
-    //END OF RENDER****************************************************************************************************************************
 
     private boolean yesNoDialogMessage(String header,String message){
         int output = JOptionPane.showConfirmDialog(null, message, header, JOptionPane.YES_NO_OPTION);
@@ -330,8 +395,10 @@ public class GameScreen implements Screen {
                     if(yesNoDialogMessage("Place turret?","Are you sure you wish to contruct this turret?\nCost " + ((int)(tempTower.getCost()))+"SP")) {
                         steamPoints -= (int) (tempTower.getCost());
                         try {
-                            tempTower.setPosition(dx,dy);
-                            towersOnField.add((TowerObject)tempTower.clone());
+                            tempTower.setPosition(dx, dy);
+                            //tempTower.placeTower();
+                            towersOnField.add(new TowerObject(tempTower.number, tempTower.getWidth(), tempTower.getHeight(), dx, dy,true));
+                            //towersOnField.add((TowerObject)tempTower.clone());
                             map.playingField[dx][dy]=2;
                             System.out.println("Added turret to heap x:" + dx + "  y:" + dy);
                         }catch(Exception e){
