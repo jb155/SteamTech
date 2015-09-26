@@ -14,7 +14,7 @@ public class Base {
         collidable=new Collidable(name);
         collidable.sprite.setSize(30, 60);
         collidable.sprite.setCenter(15, 30);
-        collidable.sprite.setPosition(pos[0], pos[1]);
+        collidable.sprite.setPosition(pos[0], pos[1]-15);
     }
 
     public int[] getPos(){

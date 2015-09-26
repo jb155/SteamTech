@@ -62,7 +62,7 @@ public class EnemyUnit{
         collidable.sprite.setPosition(pos[0],pos[1]);
         collidable.bounding.setPosition(pos[0],pos[1]);
 
-        if((HP<=0)||(pos[0]>660)){      //dead or outside screen
+        if((HP<=0)||(pos[0]>660)||(collidable.colliding)){      //dead or outside screen
             return false;
         }else{
             return true;

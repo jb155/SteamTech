@@ -112,7 +112,9 @@ public class GameScreen implements Screen {
         enemyUnitsOnField = new ArrayList<EnemyUnit>();
 
         base = new Base (map.getBasePoint(),10,"base.png");
-        base.collidable.sprite.setPosition(base.getPos()[0] * tileSize, base.getPos()[1] * tileSize + toolbarHieght);
+        base.collidable.sprite.setPosition(base.getPos()[0]*30,base.getPos()[1]*30+50);
+        base.collidable.bounding.setPosition(base.getPos()[0]*30,base.getPos()[1]*30+50);
+        //base.collidable.sprite.setPosition(base.getPos()[0] * tileSize, base.getPos()[1] * tileSize + toolbarHieght);
 
 
         setupTowers();
@@ -297,8 +299,10 @@ public class GameScreen implements Screen {
                                 if (CollisionChecker.collide(first.sprite.getBoundingRectangle(), second.sprite.getBoundingRectangle(), first.mask, second.mask)) {
                                     for(int en = 0; en < enemyUnitsOnField.size(); en++) {
                                         //check if the collision is between base and enemy unit
-                                        if(((first == enemyUnitsOnField.get(en).collidable)&&(second == base.collidable))||((second == enemyUnitsOnField.get(en).collidable)&(first == base.collidable))) {
+                                        if(((first == enemyUnitsOnField.get(en).collidable)&&(second == base.collidable))||((second == enemyUnitsOnField.get(en).collidable)&&(first == base.collidable))) {
                                             gameOver = base.doDamage(enemyUnitsOnField.get(en).collidable.damage);
+                                            first.colliding = true;
+                                            second.colliding = true;
                                             //else enemy and bullet
                                         }else if (first == enemyUnitsOnField.get(en).collidable) {
                                             enemyUnitsOnField.get(en).collided(second);
