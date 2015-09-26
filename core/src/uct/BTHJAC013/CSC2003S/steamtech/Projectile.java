@@ -10,21 +10,25 @@ public class Projectile {
 
     private int[]pos;
     private int damage;
-    private int speed;
-    private Sprite sprite;
+    private float speed;
     private float angle;
     private long spawnTime;
     private int life;
+    public Collidable collidable;
 
-    public Projectile(int x, int y, int dmg, int spd, String tex, float agl,int lf){
+    public Projectile(int x, int y, int dmg, float spd, String tex, float agl,int lf){
         pos = new int[] {x,y+50};
         damage = dmg;
         speed = spd;
 
-        sprite = new Sprite (new Texture(tex));
-        sprite.setSize(10,25);
-        sprite.setOrigin(5,12.5f);
-        sprite.setRotation(agl);
+        collidable = new Collidable(tex);
+
+        collidable.sprite = new Sprite (new Texture(tex));
+        collidable.sprite.setSize(10,25);
+        collidable.sprite.setOrigin(5,12.5f);
+        collidable.sprite.setRotation(agl);
+
+        collidable.damage = damage;
 
         angle = agl;
 
@@ -37,8 +41,13 @@ public class Projectile {
         pos[1]-= (int) (Math.round(-speed * Math.cos(angle/360 * (2 * Math.PI))));
         pos[0]+= (int) (Math.round(-speed * Math.sin(angle/360 * (2 * Math.PI))));
 
-        sprite.setPosition(pos[0], pos[1]);
+        collidable.sprite.setPosition(pos[0],pos[1]);
+        collidable.bounding.setPosition(pos[0],pos[1]);
 
+        //projectile hit something...get rid of it
+        if(collidable.colliding) {
+            return false;
+        }
 
         if(System.currentTimeMillis()>spawnTime+life){  //checks if bullet should be dead, if so let turret class know to remove bullets
             return false;
@@ -48,7 +57,7 @@ public class Projectile {
     }
 
     public Sprite getSprite(){
-        return sprite;
+        return collidable.sprite;
     }
 
 }

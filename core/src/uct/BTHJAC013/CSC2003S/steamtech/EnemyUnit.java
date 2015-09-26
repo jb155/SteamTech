@@ -1,6 +1,5 @@
 package uct.BTHJAC013.CSC2003S.steamtech;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
 import java.io.FileReader;
@@ -10,13 +9,15 @@ import java.util.Scanner;
 /**
  * Created by Jacques on 9/24/2015.
  */
-public class EnemyUnit {
+public class EnemyUnit{
     private int HP;
     private int speed;
     private int angle;
     private int damage;
-    private Sprite sprite;
     private int[]pos = new int[2];
+    private int reward = 1;
+
+    public Collidable collidable;
 
     public EnemyUnit(int num, int width, int height, int[] sp){
         try {
@@ -25,10 +26,11 @@ public class EnemyUnit {
             Scanner sc = new Scanner(new FileReader("EnemyUnits/unit"+num+".txt"));
             //Sprite
             String readLine = sc.nextLine();
-            sprite = new Sprite(new Texture(readLine));
-            sprite.setSize(width, height);
-            sprite.setCenter(width/2,height/2);
-            sprite.setPosition(pos[0],pos[1]);
+            collidable = new Collidable(readLine);
+            collidable.sprite.setSize(width, height);
+            collidable.sprite.setCenter(width / 2, height / 2);
+            collidable.sprite.setPosition(pos[0], pos[1]);
+
             //Set HP
             readLine = sc.nextLine();
             HP = Integer.parseInt(readLine);
@@ -37,31 +39,43 @@ public class EnemyUnit {
             //damage
             readLine = sc.nextLine();
             damage = Integer.parseInt(readLine);
+            collidable.damage = damage;
             //Speed
             readLine = sc.nextLine();
             speed = Integer.parseInt(readLine);
+            //Reward
+            readLine = sc.nextLine();
+            reward = Integer.parseInt(readLine);
 
         }catch (IOException e){
             System.out.println(e);
         }
     }
 
+    public void rotate(){
+        collidable.rotate(angle);
+    }
+
     public boolean tick(){
         pos[0]+= (int) (speed * Math.sin(angle));
         pos[1]+= (int) (speed * Math.cos(angle));
-        sprite.setPosition(pos[0],pos[1]);
+        collidable.sprite.setPosition(pos[0],pos[1]);
+        collidable.bounding.setPosition(pos[0],pos[1]);
 
-        //Do collision things here
-
-        if(HP<=0){
+        if((HP<=0)||(pos[0]>660)){      //dead or outside screen
             return false;
         }else{
             return true;
         }
     }
 
+    public void collided(Collidable col){
+        collidable.colliding = true;
+        HP -= col.damage;
+    }
+
     public Sprite getSprite(){
-        return sprite;
+        return collidable.sprite;
     }
 
     public int[] getPos(){
@@ -70,5 +84,9 @@ public class EnemyUnit {
 
     public int getHP(){
         return HP;
+    }
+
+    public int getReward(){
+        return reward;
     }
 }

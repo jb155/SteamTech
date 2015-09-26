@@ -1,5 +1,8 @@
 towerBasic.png
 towerBasicButton.png
-1.2
-500
+1.5
+300
+2
 1
+1000
+2.5

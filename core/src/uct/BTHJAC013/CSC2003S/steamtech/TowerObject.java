@@ -16,18 +16,22 @@ import java.util.Scanner;
 public class TowerObject implements Cloneable{
     public int number;
 
-    private int rof = 1;
-    private float radius = 3;
+    public int rof = 1;
+    public float radius = 3;
     private Texture towerTex;
     private Sprite sprite;
-    private int level = 1;
-    private int maxLevel = 3;
+    public int level = 1;
+    public int maxLevel = 3;
 
     private int xPos;
     private int yPos;
     private float targetAngle;
     private float angle;
     private int cost = 1;
+
+    public int damage;
+    private int bulletLife;
+    private float speed;
 
     private long lastFired;
     private boolean placed = false;
@@ -72,6 +76,15 @@ public class TowerObject implements Cloneable{
             //Cost
             readLine = sc.nextLine();
             cost = Integer.parseInt(readLine);
+            //Damage
+            readLine = sc.nextLine();
+            damage = Integer.parseInt(readLine);
+            //BulletLife
+            readLine = sc.nextLine();
+            bulletLife = Integer.parseInt(readLine);
+            //bullet Speed
+            readLine = sc.nextLine();
+            speed = Float.parseFloat(readLine);
 
             angle = 0;
 
@@ -120,12 +133,6 @@ public class TowerObject implements Cloneable{
         int[] temp = new int[]{xPos,yPos};
         return temp;
     }
-
-    public float getButtonSize(){
-        return (int) spawnButton.spriteSize();
-    }
-
-
     public float getRadius(){
         return radius;
     }
@@ -136,7 +143,9 @@ public class TowerObject implements Cloneable{
 
     public ArrayList<Projectile> gameTick(ArrayList<EnemyUnit>enemies){
         //If a enemy is in range shoot at it (closest)
-        if((target==null)||(target.getHP()<=0)) {
+        if((target==null)||(target.getHP()<1)) {
+            target=null;       //this is just if HP = 0, reset target
+            targetLocked = false;
             for (int i = 0; i < enemies.size(); i++) {
                 EnemyUnit a = enemies.get(i);
                 int[] temp = a.getPos();
@@ -144,7 +153,7 @@ public class TowerObject implements Cloneable{
                 int y = (temp[1]) - (yPos*30);
                 //int x = ((xPos*30-(330))/30) - ((temp[0]-330) / 30);
                 //int y = ((temp[1]-330) / 30) - ((yPos*30-(330))/30);
-                if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) <= radius*60) {
+                if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) <= radius*45) {
                     //System.out.println("Enemy in range");
                     targetLocked = true;
                     target = a;
@@ -157,7 +166,7 @@ public class TowerObject implements Cloneable{
         }else{ //Has target
             int x = (xPos*30) - (target.getPos()[0]);
             int y = (target.getPos()[1]) - (yPos*30)-45;
-            if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) <= radius*60) {
+            if (Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)) <= radius*45) {
                 targetAngle = (float) (Math.atan2(x, y) * 360 / (2 * Math.PI));
                 //System.out.println("Enemy in range");
                 targetLocked = true;
@@ -167,7 +176,7 @@ public class TowerObject implements Cloneable{
             }
         }
 
-        System.out.println(targetAngle);
+        //System.out.println(targetAngle);
 
         //else "seek"
 
@@ -177,7 +186,7 @@ public class TowerObject implements Cloneable{
             targetAngle=0;
         }else{
             if(System.currentTimeMillis()>lastFired+rof){
-                projectiles.add(new Projectile(xPos*30,yPos*30, 1, 3, "bullet.png",angle, 2000));
+                projectiles.add(new Projectile(xPos*30,yPos*30, damage, speed, "bullet.png",angle, bulletLife));
                 lastFired = System.currentTimeMillis();
             }
         }
@@ -199,6 +208,10 @@ public class TowerObject implements Cloneable{
         }
 
         return projectiles;
+    }
+
+    public ArrayList<Projectile> getProjectiles(){
+        return  projectiles;
     }
 
     public void placeTower(){
@@ -223,5 +236,17 @@ public class TowerObject implements Cloneable{
 
     public int getHeight(){
         return (int)sprite.getHeight();
+    }
+
+
+
+    public void upgrade(){
+        if(level<maxLevel) {
+            rof -= 50;
+            radius += 0.2f;
+            cost += 1;
+            damage += (int)level*0.75;
+            level++;
+        }
     }
 }

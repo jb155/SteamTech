@@ -1,0 +1,8 @@
+sprite tex
+tower button
+radius
+RoF
+Cost
+Damage
+BulletLife
+BulletSpeed

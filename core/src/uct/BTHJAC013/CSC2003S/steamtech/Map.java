@@ -19,6 +19,7 @@ public class Map {
 
     public int[][] playingField;
     private int[] spawnPoint;
+    private int[] basePoint;
 
     public Map(int width, int height){
         mapModules = new ArrayList<MapModule>();
@@ -94,6 +95,7 @@ public class Map {
         for(int y = 0; y < moduleHeight; y++){
             if(playingField[fieldWidth-2][y]==0){
                 playingField[fieldWidth-1][y]=-2;
+                basePoint = new int[]{fieldWidth-1,y};
             }else{
                 playingField[fieldWidth-1][y]=1;
             }
@@ -102,5 +104,7 @@ public class Map {
     public int[] getSpawnPoint(){
         return spawnPoint;
     }
+
+    public int[] getBasePoint() {return basePoint;}
 
 }

@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Intersector;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -28,8 +29,9 @@ public class GameScreen implements Screen {
     private int toolbarHieght = 50;
     private MyGame game;
 
+    private boolean gameOver = false;
+
     private Texture wallTexture;
-    private Texture baseTexture;
     private Texture enemySpawnTexture;
     private Sprite floorSprite;
 
@@ -42,6 +44,8 @@ public class GameScreen implements Screen {
 
     //Classes
     private Map map;
+    private Base base;
+
 
     private int towerDBCount = 2;
     private int towerCount = 2;
@@ -51,7 +55,7 @@ public class GameScreen implements Screen {
 
     private ArrayList<EnemyUnit> enemyUnitsOnField;
     private int enemyWaveCount = 5;
-    private int waveGrowthNum = 3;
+    private int waveGrowthNum = 2;
     private int currentWaveNumber = 0;
     private int waveNum = 0;
     private int spawnRate = 1000;
@@ -66,18 +70,20 @@ public class GameScreen implements Screen {
     private SimpleButton readyButton;
 
     //Game values
-    private int steamPoints = 10;
+    private int steamPoints = 5;
     private int baseHP = 10;
 
     //HUD
     private BitmapFont font;
+
+    //Collision
+    Grid grid = new Grid(350,660);
 
     // constructor to keep a reference to the main Game class
     public GameScreen(MyGame game){
         this.game = game;
         batch = new SpriteBatch();
         wallTexture = new Texture("wallBasic.png");
-        baseTexture = new Texture("base.png");
         enemySpawnTexture = new Texture("enemySpawn.png");
         floorSprite = new Sprite(new Texture("floor.png"));
         floorSprite.setSize(tileSize,tileSize);
@@ -104,6 +110,10 @@ public class GameScreen implements Screen {
 
         //Enemies
         enemyUnitsOnField = new ArrayList<EnemyUnit>();
+
+        base = new Base (map.getBasePoint(),10,"base.png");
+        base.collidable.sprite.setPosition(base.getPos()[0] * tileSize, base.getPos()[1] * tileSize + toolbarHieght);
+
 
         setupTowers();
         System.out.println("Towers setup completed");
@@ -140,6 +150,11 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
+        if(gameOver){
+            System.exit(-1);
+        }
+
+
         // update and draw stuff
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -167,19 +182,17 @@ public class GameScreen implements Screen {
                     turretMountSprite.draw(batch);
                     //batch.draw(turretMountTexture, x * tileSize, y * tileSize + toolbarHieght);
                 }
-                //enemySpawn
-                if (map.playingField[x][y] == -1) {
-                    batch.draw(enemySpawnTexture, x * tileSize, y * tileSize + toolbarHieght);
-                }
-                //basse
-                if (map.playingField[x][y] == -2) {
-                    batch.draw(baseTexture, x * tileSize, y * tileSize + toolbarHieght);
-                }
-                // draw other types here...
             }
         }
+
+        //enemySpawn
+        batch.draw(enemySpawnTexture, map.getSpawnPoint()[0]* tileSize, map.getSpawnPoint()[1] * tileSize + toolbarHieght);
+
+        //base
+        base.collidable.sprite.draw(batch);
+
         //Enemies
-        if((spawnMonsters)&&(waveNum<=enemyWaveCount)&&(currentWaveNumber<waveGrowthNum*waveNum)){
+        if((spawnMonsters)&&(currentWaveNumber<waveGrowthNum*waveNum)){
             //spawn monsters;
             if(System.currentTimeMillis()>mosnsterLastSpawned+spawnRate){
                 mosnsterLastSpawned = System.currentTimeMillis();
@@ -194,6 +207,13 @@ public class GameScreen implements Screen {
             if(!enemyUnitsOnField.get(i).tick()){
                 enemyUnitsOnField.remove(i);
             }
+        }
+
+        //if all are dead, give ready button again
+        if((spawnMonsters)&&(enemyUnitsOnField.size()==0)&&(System.currentTimeMillis()>mosnsterLastSpawned+spawnRate*waveNum*waveGrowthNum)){
+            spawnMonsters = false;
+            waveNum++;
+            currentWaveNumber = 0;
         }
 
         //Towers
@@ -240,6 +260,65 @@ public class GameScreen implements Screen {
 
         batch.end();
         //END OF RENDER****************************************************************************************************************************
+        // Adding everything to the grid
+        grid.clear();
+        //enemies
+        for (EnemyUnit e : enemyUnitsOnField) {
+            grid.add(e.collidable);
+        }
+        //bullets
+        for (TowerObject t : towersOnField) {
+            ArrayList<Projectile>temp = t.getProjectiles();
+            for(Projectile p : temp) {
+                grid.add(p.collidable);
+            }
+        }
+        //Base
+        grid.add(base.collidable);
+
+
+
+        // Checking each grid cell for more than one entity
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+
+                ArrayList<Collidable> collidables = grid.get(i, j);
+
+                if (collidables.size() > 1) {
+                    // Loop through the collidables and check them against all others
+                    for (int indexOfFirst = 0; indexOfFirst < collidables.size(); indexOfFirst++) {
+                        // Start second index at index of first + 1 to avoid double checking
+                        for (int indexOfSecond = indexOfFirst + 1; indexOfSecond < collidables.size(); indexOfSecond++) {
+                            Collidable first = collidables.get(indexOfFirst);
+                            Collidable second = collidables.get(indexOfSecond);
+
+                            if (Intersector.overlapConvexPolygons(first.bounding, second.bounding)) {
+                                // Check bounding polygons first
+                                if (CollisionChecker.collide(first.sprite.getBoundingRectangle(), second.sprite.getBoundingRectangle(), first.mask, second.mask)) {
+                                    for(int en = 0; en < enemyUnitsOnField.size(); en++) {
+                                        //check if the collision is between base and enemy unit
+                                        if(((first == enemyUnitsOnField.get(en).collidable)&&(second == base.collidable))||((second == enemyUnitsOnField.get(en).collidable)&(first == base.collidable))) {
+                                            gameOver = base.doDamage(enemyUnitsOnField.get(en).collidable.damage);
+                                            //else enemy and bullet
+                                        }else if (first == enemyUnitsOnField.get(en).collidable) {
+                                            enemyUnitsOnField.get(en).collided(second);
+                                            if(enemyUnitsOnField.get(en).getHP()<1){
+                                                steamPoints+= enemyUnitsOnField.get(en).getReward();
+                                            }
+                                            second.colliding = true;
+                                        }
+                                    }
+                                }
+                            } else {
+                                //second.colliding = false;
+                                //first.colliding = false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
 
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT))  {
             for (int i = 0; i < towersOnField.size(); i++) {
@@ -326,9 +405,16 @@ public class GameScreen implements Screen {
                         int[] comparintTurret = towersOnField.get(i).getPosition();
                         if ((comparintTurret[0] == dx) && (comparintTurret[1] == dy)) {
                             //check for upgrades
-                            if (yesNoDialogMessage("Upgrade turret?", "Do you wish to upgrade this turret?\nCost " + ((int) (tempTower.getCost() * +0.5)) + "SP\nDamage:\t# -> #\nRadius:\t# -> #\nRoF:\t# -> #")) {
-                                //do upgrade things
-                                steamPoints -= (int) (tempTower.getCost() * +0.5);
+                            if(tempTower.level<tempTower.maxLevel){
+                                if (yesNoDialogMessage("Upgrade turret?", "Do you wish to upgrade this turret to lvl. " + tempTower.maxLevel + "?\nCost " + ((int) (tempTower.getCost() +0.5)) +
+                                        "SP\nDamage:\t" + tempTower.damage + " -> " + (tempTower.damage+(int)(tempTower.level*0.75)) + "\nRadius:\t" + tempTower.radius + " -> " +(tempTower.radius + 0.2f) +
+                                        "\nRoF:\t" + tempTower.rof + " -> " + (tempTower.rof - 50))) {
+                                    //do upgrade things
+                                    tempTower.upgrade();
+                                    steamPoints -= (int) (tempTower.getCost() * +0.5);
+                                }
+                            }else{
+                                JOptionPane.showMessageDialog(null, "Turret already max level.");
                             }
                         }
                     }
@@ -386,7 +472,7 @@ public class GameScreen implements Screen {
 
         //Placing of turret
         //Valid spot
-        if(((x<mapWidth*tileSize)&&(y<mapHeight*tileSize))&&(dx>-1)&&(dy>-1)){ //inside playing field
+        if(((dx<mapWidth)&&(dy<mapHeight))&&(dx>-1)&&(dy>-1)){ //inside playing field
             int temp = map.playingField[dx][dy];  //get whats currently on that tile
             if(temp == 1) { //empty block procede to place
                 if(steamPoints>=tempTower.getCost()){
