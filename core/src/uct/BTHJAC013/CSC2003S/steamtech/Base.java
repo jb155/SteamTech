@@ -27,7 +27,7 @@ public class Base {
 
     public boolean doDamage(int dmg){
         System.out.println ("An allieds' town is under siege");
-        baseHealth-=dmg;
+        baseHealth+=dmg;
         if(baseHealth<1){
             return true;
         }else{

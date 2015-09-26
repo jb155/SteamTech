@@ -1,8 +1,8 @@
-towerBasic.png
-towerBasicButton.png
+tower/towerBasic
+tower/towerBasicButton.png
 1.5
 300
 2
 1
-1000
-2.5
+750
+3

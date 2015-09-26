@@ -1,5 +1,5 @@
-basicEnemy.png
+EnemyUnits/basicEnemy.png
+3
 2
-1
 2
 1

@@ -1,6 +1,6 @@
-towerMedium.png
-towerMediumButton.png
-2
+tower/towerMedium
+tower/towerMediumButton.png
+2.5
 1000
 5
 3

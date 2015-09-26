@@ -41,6 +41,10 @@ public class TowerObject implements Cloneable{
     private boolean targetLocked = false;
     private EnemyUnit target;
 
+    private String imageName;
+    private int spriteWidth;
+    private int spriteHeight;
+
     private boolean build = false;
 
     public TowerObject(int num, int width, int height){
@@ -60,10 +64,13 @@ public class TowerObject implements Cloneable{
             Scanner sc = new Scanner(new FileReader("tower/tower"+num+".txt"));
             //Texture
             String readLine = sc.nextLine();
-            towerTex = new Texture(readLine);
+            imageName=readLine;
+            towerTex = new Texture(readLine + level + ".png");
             sprite = new Sprite(towerTex);
             sprite.setSize(width, height);
-            sprite.setOrigin(width/2, height/2);
+            sprite.setOrigin(width / 2, height / 2);
+            spriteWidth=width;
+            spriteHeight=height;
             //Setup spawn Button
             readLine = sc.nextLine();
             spawnButton = new SimpleButton(new Texture(readLine),0,0,50,50);
@@ -143,7 +150,7 @@ public class TowerObject implements Cloneable{
 
     public ArrayList<Projectile> gameTick(ArrayList<EnemyUnit>enemies){
         //If a enemy is in range shoot at it (closest)
-        if((target==null)||(target.getHP()<1)) {
+        if((target==null)||(target.getHP()<1)||(target.collidable.colliding)) {
             target=null;       //this is just if HP = 0, reset target
             targetLocked = false;
             for (int i = 0; i < enemies.size(); i++) {
@@ -247,6 +254,13 @@ public class TowerObject implements Cloneable{
             cost += 1;
             damage += (int)level*0.75;
             level++;
+
+            //new image
+            towerTex = new Texture(imageName + level + ".png");
+            sprite=null;
+            sprite = new Sprite(towerTex);
+            sprite.setSize(spriteWidth, spriteHeight);
+            sprite.setOrigin(spriteWidth/2, spriteHeight/2);
         }
     }
 }

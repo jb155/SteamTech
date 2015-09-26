@@ -1,0 +1,5 @@
+Sprite name
+HP
+Damage
+Speed
+Reward

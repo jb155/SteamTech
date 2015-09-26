@@ -39,7 +39,7 @@ public class EnemyUnit{
             //damage
             readLine = sc.nextLine();
             damage = Integer.parseInt(readLine);
-            collidable.damage = damage;
+            collidable.damage = -damage;
             //Speed
             readLine = sc.nextLine();
             speed = Integer.parseInt(readLine);
@@ -57,8 +57,8 @@ public class EnemyUnit{
     }
 
     public boolean tick(){
-        pos[0]+= (int) (speed * Math.sin(angle));
-        pos[1]+= (int) (speed * Math.cos(angle));
+        pos[0]+= (int) (speed * Math.sin(angle)+0.5);
+        pos[1]+= (int) (speed * Math.cos(angle)+0.5);
         collidable.sprite.setPosition(pos[0],pos[1]);
         collidable.bounding.setPosition(pos[0],pos[1]);
 
@@ -70,7 +70,7 @@ public class EnemyUnit{
     }
 
     public void collided(Collidable col){
-        collidable.colliding = true;
+        //collidable.colliding = true;
         HP -= col.damage;
     }
 
