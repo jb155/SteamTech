@@ -1,5 +1,6 @@
 package uct.BTHJAC013.CSC2003S.steamtech;
 
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
 /**
@@ -22,10 +23,9 @@ public class Projectile {
 
         collidable = new Collidable(tex);
 
-        collidable = new Collidable(tex);
-        //collidable.sprite.setSize(width, height);
-        //collidable.sprite.setCenter(collidable.sprite.getWidth() / 2, collidable.sprite.getHeight() / 2);
-        collidable.sprite.setPosition(pos[0], pos[1]);
+        collidable.sprite = new Sprite (new Texture(tex));
+        //collidable.sprite.setSize(10,25);
+        //collidable.sprite.setOrigin(5,12.5f);
         collidable.sprite.setRotation(agl);
 
         collidable.damage = damage;
@@ -39,16 +39,13 @@ public class Projectile {
 
     public boolean tick(){
         pos[1]-= (int) (Math.round(-speed * Math.cos(angle/360 * (2 * Math.PI))));
-        pos[0]+= (int) (Math.round(-speed * Math.sin(angle / 360 * (2 * Math.PI))));
+        pos[0]+= (int) (Math.round(-speed * Math.sin(angle/360 * (2 * Math.PI))));
 
         collidable.sprite.setPosition(pos[0],pos[1]);
         collidable.bounding.setPosition(pos[0],pos[1]);
 
-        //collidable.recalcMaskAndBounds();
-
         //projectile hit something...get rid of it
         if(collidable.colliding) {
-            System.out.println ("Its collidingg");
             return false;
         }
 

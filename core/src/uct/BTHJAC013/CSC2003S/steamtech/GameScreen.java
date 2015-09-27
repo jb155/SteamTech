@@ -380,23 +380,19 @@ public class GameScreen implements Screen {
                                             //check if the collision is between base and enemy unit
                                             if (((first == enemyUnitsOnField.get(en).collidable) && (second == base.collidable)) || ((second == enemyUnitsOnField.get(en).collidable) && (first == base.collidable))) {
                                                 gameOver = base.doDamage(enemyUnitsOnField.get(en).collidable.damage);
-                                                SmallExplosion.play();
                                                 first.colliding = true;
-                                                second.colliding = true;
+                                                //second.colliding = true;
                                                 //else enemy and bullet
-                                            } else if (((first == enemyUnitsOnField.get(en).collidable)&&(second.damage>0))||
-                                                    ((second == enemyUnitsOnField.get(en).collidable)&&(first.damage>0))){ //Enemy units do - damage and bullets do + damage. This way one enemy doesnt take another out
+                                            } else if ((first == enemyUnitsOnField.get(en).collidable) && (second.damage > 0)) { //Enemy units do - damage and bullets do + damage. This way one enemy doesnt take another out
                                                 enemyUnitsOnField.get(en).collided(second);
                                                 if (enemyUnitsOnField.get(en).getHP() < 1) {
                                                     steamPoints += enemyUnitsOnField.get(en).getReward();
                                                 }
                                                 second.colliding = true;
-                                                first.colliding = true;
                                             }
-                                            System.out.println (first.fileName + ":" + second.fileName);
                                         }
                                     }
-                                } else {
+                                }  else {
                                     //second.colliding = false;
                                     //first.colliding = false;
                                 }

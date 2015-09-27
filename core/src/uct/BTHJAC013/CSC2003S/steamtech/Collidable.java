@@ -9,7 +9,7 @@ import com.badlogic.gdx.math.Rectangle;
 
 /**
  * A object to keep things that can collide
- * Created by calvin on 2014/09/05.
+ * Created by calvin on 2014/09/05.  Modified by Jacques on 27/09/2015
  */
 public class Collidable {
     public Sprite sprite;
@@ -21,10 +21,11 @@ public class Collidable {
 
     public Collidable(String name) {
         // name is the filename, and will setup the sprite and mask
+        fileName = name;
         sprite = new Sprite(new Texture(name));
         mask = newMask(new Pixmap(new FileHandle(name)));
         bounding = rectToPoly(sprite.getBoundingRectangle());
-        fileName = name;
+
     }
 
     public void recalcMaskAndBounds(){
@@ -49,6 +50,7 @@ public class Collidable {
     }
 
     public long[] newMask(Pixmap map) {
+        System.out.print(fileName);
         /* Creates a new mask from a pixmap*/
         int h = map.getHeight();
         int w = map.getWidth();
