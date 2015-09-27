@@ -16,13 +16,19 @@ public class Collidable {
     public long[] mask;
     public boolean colliding;
     public Polygon bounding;
-    public int damage; //this is used by the enemies to check amount of damage done to them by bullets
-    //protected BitSet[] mask;
+    public float damage; //this is used by the enemies to check amount of damage done to them by bullets
+    public String fileName;
 
     public Collidable(String name) {
         // name is the filename, and will setup the sprite and mask
         sprite = new Sprite(new Texture(name));
         mask = newMask(new Pixmap(new FileHandle(name)));
+        bounding = rectToPoly(sprite.getBoundingRectangle());
+        fileName = name;
+    }
+
+    public void recalcMaskAndBounds(){
+       //mask = newMask(new Pixmap(sprite));
         bounding = rectToPoly(sprite.getBoundingRectangle());
     }
 
@@ -56,7 +62,7 @@ public class Collidable {
             for (int j = 0; j < w; j++) {
                 if(line> Long.MAX_VALUE /2 -5){
                     // Checks for overflow
-                    System.out.print("OVERFLOW!!!");
+                    System.out.print(fileName + " OVERFLOW!!!");
                 }
                 line = line * 2;
                 if ((map.getPixel(j, i) & 0x000000ff) != 0) {
@@ -66,7 +72,7 @@ public class Collidable {
             // PixMaps have 0,0 top left, libgdx bottom left, this fixes that
             mask[h-1-i] = line;
         }
-        testPrint(mask);
+        //testPrint(mask);
         return mask;
 
     }

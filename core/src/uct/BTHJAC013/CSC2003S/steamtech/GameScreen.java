@@ -7,13 +7,12 @@ package uct.BTHJAC013.CSC2003S.steamtech;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.math.Intersector;
 
 import javax.swing.*;
@@ -83,12 +82,21 @@ public class GameScreen implements Screen {
     //Collision
     Grid grid = new Grid(350,660);
 
+    //Sounds and music
+    private Music victoryFanfare;
+    private Sound construction;
+    private Sound tollBell;
+    private Sound failed;
+    private Sound SmallExplosion;
+
+    private ArrayList <ExplosionEntity> explosions;
+
     // constructor to keep a reference to the main Game class
     public GameScreen(MyGame game){
         this.game = game;
         batch = new SpriteBatch();
         wallTexture = new Texture("wallBasic.png");
-        enemySpawnTexture = new Texture("enemySpawn.png");
+        enemySpawnTexture = new Texture("enemySpawnClosed.png");
         floorSprite = new Sprite(new Texture("floor.png"));
         gameOverTex = new Texture("MainMenu/YouFailedScreen.png");
         victoryTex = new Texture("MainMenu/Victory.png");
@@ -117,14 +125,25 @@ public class GameScreen implements Screen {
         //Enemies
         enemyUnitsOnField = new ArrayList<EnemyUnit>();
 
-        base = new Base (map.getBasePoint(),9,"base.png");
-        base.collidable.sprite.setPosition(base.getPos()[0]*30,base.getPos()[1]*30+50);
-        base.collidable.bounding.setPosition(base.getPos()[0]*30,base.getPos()[1]*30+50);
+        base = new Base(map.getBasePoint(), 9, "base.png");
+        base.collidable.sprite.setPosition(base.getPos()[0] * 30, base.getPos()[1] * 30 + 35);
+        base.collidable.bounding.setPosition(base.getPos()[0] * 30, base.getPos()[1] * 30 + 35);
         //base.collidable.sprite.setPosition(base.getPos()[0] * tileSize, base.getPos()[1] * tileSize + toolbarHieght);
 
 
         setupTowers();
         System.out.println("Towers setup completed");
+
+        //Load sounds and music
+        victoryFanfare = Gdx.audio.newMusic(Gdx.files.internal("sounds/victory_Fanfare.mp3"));
+        construction = Gdx.audio.newSound(Gdx.files.internal("sounds/Construct.wav"));
+        tollBell = Gdx.audio.newSound(Gdx.files.internal("sounds/tollBell.wav"));
+        failed = Gdx.audio.newSound(Gdx.files.internal("sounds/failed.wav"));
+        SmallExplosion = Gdx.audio.newSound(Gdx.files.internal("sounds/SmallExplosion.wav"));
+
+        explosions = new ArrayList<ExplosionEntity>();
+
+        batch = new SpriteBatch();
     }
 
     private void setupTowers(){
@@ -158,11 +177,17 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         if(gameOver){   //did they lose?
+            if(!victory) {      //A very dirty fix
+                failed.play(1f);
+                victory = true;
+            }
             batch.begin();
                 batch.draw(gameOverTex, 0, 0, 660, 350);
 
-                backToLobby = new SimpleButton(new Texture("BackToLobbyButton.png"),500, 20 ,100, 40);
+                backToLobby = new SimpleButton(new Texture("BackToLobbyButton.png"),520, 10 ,100, 40);
                 backToLobby.update((SpriteBatch)batch);
             batch.end();
             if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
@@ -172,10 +197,11 @@ public class GameScreen implements Screen {
             }
             System.out.println("You failed");
         }else  if(victory){ //win mebe?
+            victoryFanfare.play();
             batch.begin();
                 batch.draw(victoryTex, 0, 0, 660, 350);
 
-                backToLobby = new SimpleButton(new Texture("BackToLobbyButton.png"),580, 0,100, 40);
+                backToLobby = new SimpleButton(new Texture("BackToLobbyButton.png"),550, 10,100, 40);
                 backToLobby.update((SpriteBatch)batch);
             batch.end();
             if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
@@ -186,7 +212,6 @@ public class GameScreen implements Screen {
             //game.setScreen(game.mainMenuScreen);
             System.out.println ("Victory");
         }else {     //No? Dammit...let them eat cake
-
             // update and draw stuff
             Gdx.gl.glClearColor(0, 0, 0, 1);
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -218,7 +243,7 @@ public class GameScreen implements Screen {
             }
 
             //enemySpawn
-            batch.draw(enemySpawnTexture, map.getSpawnPoint()[0] * tileSize, map.getSpawnPoint()[1] * tileSize + toolbarHieght);
+            batch.draw(enemySpawnTexture, map.getSpawnPoint()[0] * tileSize, map.getSpawnPoint()[1] * tileSize + toolbarHieght,30,30);
 
             //base
             base.collidable.sprite.draw(batch);
@@ -228,26 +253,40 @@ public class GameScreen implements Screen {
                 //spawn monsters;
                 if (System.currentTimeMillis() > mosnsterLastSpawned + spawnRate) {
                     mosnsterLastSpawned = System.currentTimeMillis();
-                    enemyUnitsOnField.add(new EnemyUnit((int) (Math.random() * enemyTypes), 20, 20, map.getSpawnPoint()));
+                    double randomNumber = Math.random() * (double)(((double)waveNum/(double)totalEnemyWaves)*(double)(enemyTypes));
+                    enemyUnitsOnField.add(new EnemyUnit((int)randomNumber, 20, 20, map.getSpawnPoint()));
                     currentWaveNumber++;
-                    System.out.println("Spawn enemy");
+                    System.out.println("Spawn enemy\t" + randomNumber);
                 }
             } else {
                 if (waveNum >= totalEnemyWaves) {
                     victory = true;
                 }
             }
-            //go through enemies and check if dead (if they are...remove them and also render them
-            for (int i = 0; i < enemyUnitsOnField.size(); i++) {
-                enemyUnitsOnField.get(i).getSprite().draw(batch);
-                if (!enemyUnitsOnField.get(i).tick()) {
-                    enemyUnitsOnField.remove(i);
+
+            for (int i = 0; i < explosions.size(); i++){
+                if(explosions.get(i).elapsedTime>=explosions.get(i).explosionLifeTime){
+                    explosions.remove(i);
                 }
             }
 
+            //go through enemies and check if dead (if they are...remove them and also render them
+            for (int i = 0; i < enemyUnitsOnField.size(); i++) {
+                if (!enemyUnitsOnField.get(i).tick()) {
+                    explosions.add(new ExplosionEntity(0.3f,enemyUnitsOnField.get(i).getPos()[0],enemyUnitsOnField.get(i).getPos()[1]));
+                    enemyUnitsOnField.remove(i);
+                }else {
+                    enemyUnitsOnField.get(i).getSprite().draw(batch);
+                }
+            }
+
+
+
             //if all are dead, give ready button again
-            if ((spawnMonsters) && (enemyUnitsOnField.size() == 0) && (System.currentTimeMillis() > mosnsterLastSpawned + spawnRate * waveNum * waveGrowthNum)) {
+            if ((spawnMonsters) && (enemyUnitsOnField.size() == 0) && (System.currentTimeMillis() >= mosnsterLastSpawned + (spawnRate * waveGrowthNum))) {
+                enemySpawnTexture = new Texture("enemySpawnClosed.png");
                 spawnMonsters = false;
+                steamPoints+=(int)(waveNum*waveGrowthNum*0.25);
                 currentWaveNumber = 0;
             }
 
@@ -260,8 +299,13 @@ public class GameScreen implements Screen {
                 temp.getSprite(temp.getxPos() * tileSize, temp.getyPos() * tileSize + toolbarHieght).draw(batch);
                 //batch.draw(temp.getSprite(), temp.getxPos(), temp.getyPos()+toolbarHieght,30,30);
                 ArrayList<Projectile> tempBullets = towersOnField.get(i).gameTick(enemyUnitsOnField);   //Get all the bullets of the tower and render its bullets
-                for (Projectile p : tempBullets) {
-                    p.getSprite().draw(batch);
+                //update all the projectiles
+                for(int j = 0; j < tempBullets.size(); j++){
+                    if(!tempBullets.get(j).tick()){         //the projectile tick function not only move the projectile around but also checks if its still alive, if its not...remove from arrayList
+                        tempBullets.remove(j);
+                    }else{
+                        tempBullets.get(j).getSprite().draw(batch);
+                    }
                 }
             }
 
@@ -297,6 +341,7 @@ public class GameScreen implements Screen {
 
             batch.end();
             //END OF RENDER****************************************************************************************************************************
+
             // Adding everything to the grid
             grid.clear();
             //enemies
@@ -335,16 +380,20 @@ public class GameScreen implements Screen {
                                             //check if the collision is between base and enemy unit
                                             if (((first == enemyUnitsOnField.get(en).collidable) && (second == base.collidable)) || ((second == enemyUnitsOnField.get(en).collidable) && (first == base.collidable))) {
                                                 gameOver = base.doDamage(enemyUnitsOnField.get(en).collidable.damage);
+                                                SmallExplosion.play();
                                                 first.colliding = true;
-                                                //second.colliding = true;
+                                                second.colliding = true;
                                                 //else enemy and bullet
-                                            } else if ((first == enemyUnitsOnField.get(en).collidable) && (second.damage > 0)) { //Enemy units do - damage and bullets do + damage. This way one enemy doesnt take another out
+                                            } else if (((first == enemyUnitsOnField.get(en).collidable)&&(second.damage>0))||
+                                                    ((second == enemyUnitsOnField.get(en).collidable)&&(first.damage>0))){ //Enemy units do - damage and bullets do + damage. This way one enemy doesnt take another out
                                                 enemyUnitsOnField.get(en).collided(second);
                                                 if (enemyUnitsOnField.get(en).getHP() < 1) {
                                                     steamPoints += enemyUnitsOnField.get(en).getReward();
                                                 }
                                                 second.colliding = true;
+                                                first.colliding = true;
                                             }
+                                            System.out.println (first.fileName + ":" + second.fileName);
                                         }
                                     }
                                 } else {
@@ -385,7 +434,9 @@ public class GameScreen implements Screen {
                 //Check if player ready (to start next wave of enemies
                 if (!leftMouseDown) {
                     if ((readyButton.checkIfClicked(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY())) && !spawnMonsters) {
+                        tollBell.play(0.5f);
                         spawnMonsters = true;
+                        enemySpawnTexture = new Texture("enemySpawnOpen.png");
                         waveNum++;
                         if (waveNum < enemyWaveCount) {
                             enemyWaveCount = waveNum * waveGrowthNum;
@@ -408,7 +459,6 @@ public class GameScreen implements Screen {
             if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
                 if (yesNoDialogMessage("End level?", "Are you sure you wish to return to main lobby?\nYou will abandon this brewery to those fiends")) {
                     game.setScreen(game.mainMenuScreen);
-                    this.dispose();
                 }
             }
 
@@ -443,8 +493,8 @@ public class GameScreen implements Screen {
                         int[] comparintTurret = towersOnField.get(i).getPosition();
                         if ((comparintTurret[0] == dx) && (comparintTurret[1] == dy)) {
                             //check for upgrades
-                            if(steamPoints>=(int) (tempTower.getCost() * +0.5)) {
-                                if (tempTower.level < tempTower.maxLevel) {
+                            if(steamPoints>(int) (towersOnField.get(i).getCost()  * +0.5)) {
+                                if (towersOnField.get(i).level < towersOnField.get(i).maxLevel) {
                                     if (yesNoDialogMessage("Upgrade turret?", "Do you wish to upgrade this turret to lvl. " + (towersOnField.get(i).level+1) + "?\nCost " + ((int) (towersOnField.get(i).getCost() + 0.5)) +
                                             "SP\nDamage:\t" + towersOnField.get(i).damage + " -> " + (towersOnField.get(i).damage + (int) (towersOnField.get(i).level * 0.75)) + "\nRadius:\t" + towersOnField.get(i).radius
                                             + " -> " + (towersOnField.get(i).radius + 0.2f) +
@@ -531,6 +581,8 @@ public class GameScreen implements Screen {
                             //towersOnField.add((TowerObject)tempTower.clone());
                             map.playingField[dx][dy]=2;
                             System.out.println("Added turret to heap x:" + dx + "  y:" + dy);
+                            construction.play(0.4f);
+
                         }catch(Exception e){
 
                         }
@@ -577,6 +629,6 @@ public class GameScreen implements Screen {
     @Override
     public void dispose() {
         // never called automatically
-
+        batch.dispose();
     }
 }

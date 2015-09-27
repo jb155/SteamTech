@@ -1,8 +1,10 @@
-tower/towerMedium
-tower/towerMediumButton.png
-2.5
-1000
-5
+tower/towerSlight
+tower/towerSlightButton.png
+flame.png
+sounds/Fire.wav
+1.5
+100
+4
+0.3
+300
 3
-2000
-1

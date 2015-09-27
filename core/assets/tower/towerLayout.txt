@@ -1,5 +1,7 @@
 sprite tex
 tower button
+bullet tex
+sound
 radius
 RoF
 Cost

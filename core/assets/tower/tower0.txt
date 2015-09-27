@@ -1,6 +1,8 @@
 tower/towerBasic
 tower/towerBasicButton.png
-1.5
+bullet.png
+sounds/Shot.wav
+2
 300
 2
 1

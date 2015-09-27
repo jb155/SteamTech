@@ -10,7 +10,7 @@ import java.util.Scanner;
  * Created by Jacques on 9/24/2015.
  */
 public class EnemyUnit{
-    private int HP;
+    private float HP;
     private int speed;
     private int angle;
     private int damage;
@@ -30,6 +30,8 @@ public class EnemyUnit{
             collidable.sprite.setSize(width, height);
             collidable.sprite.setCenter(width / 2, height / 2);
             collidable.sprite.setPosition(pos[0], pos[1]);
+            rotate();
+
 
             //Set HP
             readLine = sc.nextLine();
@@ -59,6 +61,7 @@ public class EnemyUnit{
     public boolean tick(){
         pos[0]+= (int) (speed * Math.sin(angle)+0.5);
         pos[1]+= (int) (speed * Math.cos(angle)+0.5);
+
         collidable.sprite.setPosition(pos[0],pos[1]);
         collidable.bounding.setPosition(pos[0],pos[1]);
 
@@ -82,7 +85,7 @@ public class EnemyUnit{
         return pos;
     }
 
-    public int getHP(){
+    public float getHP(){
         return HP;
     }
 

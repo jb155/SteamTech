@@ -1,5 +1,7 @@
 package uct.BTHJAC013.CSC2003S.steamtech;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -29,7 +31,7 @@ public class TowerObject implements Cloneable{
     private float angle;
     private int cost = 1;
 
-    public int damage;
+    public float damage;
     private int bulletLife;
     private float speed;
 
@@ -45,7 +47,11 @@ public class TowerObject implements Cloneable{
     private int spriteWidth;
     private int spriteHeight;
 
+    private String bulletTex;
+
     private boolean build = false;
+
+    private Sound fireSound;
 
     public TowerObject(int num, int width, int height){
         setup(num,width,height);
@@ -74,6 +80,12 @@ public class TowerObject implements Cloneable{
             //Setup spawn Button
             readLine = sc.nextLine();
             spawnButton = new SimpleButton(new Texture(readLine),0,0,50,50);
+            //bullet
+            readLine = sc.nextLine();
+            bulletTex = readLine;
+            //Sound
+            readLine = sc.nextLine();
+            fireSound = Gdx.audio.newSound(Gdx.files.internal(readLine));
             //Radius
             readLine = sc.nextLine();
             radius = Float.parseFloat(readLine);
@@ -85,7 +97,7 @@ public class TowerObject implements Cloneable{
             cost = Integer.parseInt(readLine);
             //Damage
             readLine = sc.nextLine();
-            damage = Integer.parseInt(readLine);
+            damage = Float.parseFloat(readLine);
             //BulletLife
             readLine = sc.nextLine();
             bulletLife = Integer.parseInt(readLine);
@@ -165,6 +177,7 @@ public class TowerObject implements Cloneable{
                     targetLocked = true;
                     target = a;
                     i = enemies.size();
+                    lastFired = System.currentTimeMillis()-(rof/2);
                 }else{
                     target = null;
                     targetLocked = false;
@@ -190,18 +203,12 @@ public class TowerObject implements Cloneable{
 
         //fire
         if(!targetLocked){
-            targetAngle=0;
+            //targetAngle=0;
         }else{
             if(System.currentTimeMillis()>lastFired+rof){
-                projectiles.add(new Projectile(xPos*30,yPos*30, damage, speed, "bullet.png",angle, bulletLife));
+                projectiles.add(new Projectile(xPos*30,yPos*30, damage, speed, bulletTex ,angle, bulletLife));
+                fireSound.play();
                 lastFired = System.currentTimeMillis();
-            }
-        }
-
-        //update all the projectiles
-        for(int i = 0; i < projectiles.size(); i++){
-            if(!projectiles.get(i).tick()){         //the projectile tick function not only move the projectile around but also checks if its still alive, if its not...remove from arrayList
-                projectiles.remove(i);
             }
         }
 
