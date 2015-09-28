@@ -3,7 +3,7 @@ tower/towerSlightButton.png
 flame.png
 sounds/Fire.wav
 1.5
-100
+150
 4
 0.3
 300

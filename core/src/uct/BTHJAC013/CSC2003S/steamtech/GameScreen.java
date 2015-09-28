@@ -265,6 +265,7 @@ public class GameScreen implements Screen {
             }
 
             for (int i = 0; i < explosions.size(); i++){
+                batch.draw(explosions.get(i).update(), explosions.get(i).x, explosions.get(i).y);
                 if(explosions.get(i).elapsedTime>=explosions.get(i).explosionLifeTime){
                     explosions.remove(i);
                 }
@@ -273,6 +274,9 @@ public class GameScreen implements Screen {
             //go through enemies and check if dead (if they are...remove them and also render them
             for (int i = 0; i < enemyUnitsOnField.size(); i++) {
                 if (!enemyUnitsOnField.get(i).tick()) {
+                    explosions.add(new ExplosionEntity(0.3f,enemyUnitsOnField.get(i).getPos()[0],enemyUnitsOnField.get(i).getPos()[1]));
+                    enemyUnitsOnField.remove(i);
+                }else if (enemyUnitsOnField.get(i).getHP()<1) {   //double check...cause prev one seems to miss one or two
                     explosions.add(new ExplosionEntity(0.3f,enemyUnitsOnField.get(i).getPos()[0],enemyUnitsOnField.get(i).getPos()[1]));
                     enemyUnitsOnField.remove(i);
                 }else {
@@ -496,8 +500,8 @@ public class GameScreen implements Screen {
                                             + " -> " + (towersOnField.get(i).radius + 0.2f) +
                                             "\nRoF:\t" + towersOnField.get(i).rof + " -> " + (towersOnField.get(i).rof - 50))) {
                                         //do upgrade things
+                                        steamPoints -= (int) (towersOnField.get(i).getCost() +0.5);
                                         towersOnField.get(i).upgrade();
-                                        steamPoints -= (int) (towersOnField.get(i).getCost() * +0.5);
                                     }
                                 } else {
                                     JOptionPane.showMessageDialog(null, "Turret already max level.");

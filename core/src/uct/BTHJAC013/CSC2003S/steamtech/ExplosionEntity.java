@@ -1,19 +1,18 @@
 package uct.BTHJAC013.CSC2003S.steamtech;
 
-import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 /**
  * Created by Jacques on 9/27/2015.
  */
-public class ExplosionEntity implements ApplicationListener {
+public class ExplosionEntity{
     //Animation
-    private int x;
-    private int y;
+    public int x;
+    public int y;
     private TextureAtlas textureAtlas;
     private Animation animation;
     public float elapsedTime = 0;
@@ -29,41 +28,10 @@ public class ExplosionEntity implements ApplicationListener {
         y = yPos;
     }
 
-
-    @Override
-    public void create() {
-
-    }
-
-    @Override
-    public void resize(int width, int height) {
-
-    }
-
-    @Override
-    public void render() {
-        Gdx.gl.glClearColor(0, 0, 0, 1);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        batch.begin();
+    public TextureRegion update() {
         //sprite.draw(batch);
         elapsedTime += Gdx.graphics.getDeltaTime();
-        batch.draw(animation.getKeyFrame(elapsedTime, true), x, y);
-        batch.end();
-    }
-
-    @Override
-    public void pause() {
-
-    }
-
-    @Override
-    public void resume() {
-
-    }
-
-    @Override
-    public void dispose() {
-
+        //batch.draw(animation.getKeyFrame(elapsedTime, true), x, y);
+        return animation.getKeyFrame(elapsedTime, true);
     }
 }
