@@ -196,11 +196,6 @@ public class TowerObject implements Cloneable{
             }
         }
 
-        //System.out.println(targetAngle);
-
-        //else "seek"
-
-
         //fire
         if(!targetLocked){
             //targetAngle=0;
@@ -240,8 +235,8 @@ public class TowerObject implements Cloneable{
         sprite.setRotation(angle);
     }
 
-    private float getAngle(){
-        return angle;
+    public void resetAngle(){
+        targetAngle = 0;
     }
 
     public int getWidth(){
@@ -254,12 +249,12 @@ public class TowerObject implements Cloneable{
 
 
 
-    public void upgrade(){
+    public void upgrade(){  //upgrades tower
         if(level<maxLevel) {
             rof -= 50;
             radius += 0.2f;
             cost += 1;
-            damage += (int)level*0.75;
+            damage += (int)level*0.5;
             level++;
 
             //new image

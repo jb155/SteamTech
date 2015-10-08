@@ -18,8 +18,10 @@ public class Map {
     private int mapModuleCount = 4;
 
     public int[][] playingField;
-    private int[] spawnPoint;
-    private int[] basePoint;
+    public int[] spawnPoint;
+    public int[] basePoint;
+
+    private boolean[][] visited = new boolean[fieldWidth][fieldHeight];
 
     public Map(int width, int height){
         mapModules = new ArrayList<MapModule>();
@@ -106,5 +108,37 @@ public class Map {
     }
 
     public int[] getBasePoint() {return basePoint;}
+
+    public int getFieldWidth(){
+        return fieldWidth;
+    }
+    public int getFieldHeight(){
+        return fieldHeight;
+    }
+
+    //*****************************************************************
+    //code for AI path finding
+    public void clearVisited() {
+        for (int x=0;x<getFieldWidth();x++) {
+            for (int y=0;y<getFieldHeight();y++) {
+                visited[x][y] = false;
+            }
+        }
+    }
+    public boolean visited(int x, int y) {
+        return visited[x][y];
+    }
+    public boolean blocked(int x, int y) {
+        // if theres a unit at the location, then it's blocked
+
+        if (playingField[x][y] == 1) {
+            return true;
+        }
+        return false;
+    }
+
+    public float getCost(int sx, int sy, int tx, int ty) {
+        return 1;
+    }
 
 }

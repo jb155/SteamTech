@@ -37,7 +37,7 @@ public class Projectile {
         tick();
     }
 
-    public boolean tick(){
+    public boolean tick(){  //move unit into direction
         pos[1]-= (int) (Math.round(-speed * Math.cos(angle/360 * (2 * Math.PI))));
         pos[0]+= (int) (Math.round(-speed * Math.sin(angle/360 * (2 * Math.PI))));
 

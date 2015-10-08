@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 /**
  * A grid for more efficient collision detection
- * Created by calvin on 2014/09/07.
+ * Created by calvin on 2014/09/07. Modified by Jacques Botha 27/09/2015
  */
 public class Grid {
     private ArrayList<Collidable>[][] grid = new ArrayList[3][3];

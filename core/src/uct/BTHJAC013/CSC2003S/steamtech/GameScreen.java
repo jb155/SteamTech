@@ -91,6 +91,8 @@ public class GameScreen implements Screen {
 
     private ArrayList <ExplosionEntity> explosions;
 
+    private Route route;
+
     // constructor to keep a reference to the main Game class
     public GameScreen(MyGame game){
         this.game = game;
@@ -132,10 +134,11 @@ public class GameScreen implements Screen {
 
 
         setupTowers();
-        System.out.println("Towers setup completed");
+        //System.out.println("Towers setup completed");
 
         //Load sounds and music
         victoryFanfare = Gdx.audio.newMusic(Gdx.files.internal("sounds/victory_Fanfare.mp3"));
+        victoryFanfare.setLooping(false);
         construction = Gdx.audio.newSound(Gdx.files.internal("sounds/Construct.wav"));
         tollBell = Gdx.audio.newSound(Gdx.files.internal("sounds/tollBell.wav"));
         failed = Gdx.audio.newSound(Gdx.files.internal("sounds/failed.wav"));
@@ -143,7 +146,9 @@ public class GameScreen implements Screen {
 
         explosions = new ArrayList<ExplosionEntity>();
 
-        batch = new SpriteBatch();
+        //Let the path finding commence;
+        PathFinder finder = new PathFinder(map);
+        route = finder.findPath(map.spawnPoint[0],map.spawnPoint[1],map.getBasePoint()[0],map.getBasePoint()[1]);
     }
 
     private void setupTowers(){
@@ -195,7 +200,7 @@ public class GameScreen implements Screen {
                     game.setScreen(game.mainMenuScreen);
                 }
             }
-            System.out.println("You failed");
+            //System.out.println("You failed");
         }else  if(victory){ //win mebe?
             victoryFanfare.play();
             batch.begin();
@@ -210,7 +215,7 @@ public class GameScreen implements Screen {
                 }
             }
             //game.setScreen(game.mainMenuScreen);
-            System.out.println ("Victory");
+            //System.out.println ("Victory");
         }else {     //No? Dammit...let them eat cake
             // update and draw stuff
             Gdx.gl.glClearColor(0, 0, 0, 1);
@@ -239,9 +244,22 @@ public class GameScreen implements Screen {
                         turretMountSprite.draw(batch);
                         //batch.draw(turretMountTexture, x * tileSize, y * tileSize + toolbarHieght);
                     }
+
                 }
             }
 
+            if(!spawnMonsters) {
+                //temp route map for debugging...decided to keep it...cause it looks cool
+                int routeCount = 0;
+                for (int y = 0; y < mapHeight; y++) {
+                    // go over each column left to right
+                    for (int x = 0; x < mapWidth; x++) {
+                        if (route.contains(x, y)) {
+                            batch.draw(new Texture("Path Dot.png"), x * tileSize+5, y * tileSize + toolbarHieght + 5,20,20);
+                        }
+                    }
+                }
+            }
             //enemySpawn
             batch.draw(enemySpawnTexture, map.getSpawnPoint()[0] * tileSize, map.getSpawnPoint()[1] * tileSize + toolbarHieght,30,30);
 
@@ -254,9 +272,9 @@ public class GameScreen implements Screen {
                 if (System.currentTimeMillis() > mosnsterLastSpawned + spawnRate) {
                     mosnsterLastSpawned = System.currentTimeMillis();
                     double randomNumber = Math.random() * (double)(((double)waveNum/(double)totalEnemyWaves)*(double)(enemyTypes));
-                    enemyUnitsOnField.add(new EnemyUnit((int)randomNumber, 20, 20, map.getSpawnPoint()));
+                    enemyUnitsOnField.add(new EnemyUnit((int)randomNumber, 20, 20, map.getSpawnPoint(),route));
                     currentWaveNumber++;
-                    System.out.println("Spawn enemy\t" + randomNumber);
+                    //System.out.println("Spawn enemy\t" + randomNumber);
                 }
             } else {
                 if (waveNum >= totalEnemyWaves) {
@@ -298,6 +316,11 @@ public class GameScreen implements Screen {
             for (int i = 0; i < towersOnField.size(); i++) {
                 TowerObject temp = towersOnField.get(i);
 
+                //reset turret angle
+                if (!spawnMonsters){
+                    temp.resetAngle();
+                }
+
                 //temp.gameTick(enemyUnitsOnField);
 
                 temp.getSprite(temp.getxPos() * tileSize, temp.getyPos() * tileSize + toolbarHieght).draw(batch);
@@ -335,6 +358,7 @@ public class GameScreen implements Screen {
                 //batch.draw(basicTurretTexture,0,0,50,50);
                 towerIngameDB[i].updateButton(batch, i * 50 + 50, 0);
             }
+            //Hud info
             font.draw(batch, "" + steamPoints, 620, 40);
             font.draw(batch, "" + base.getHealth(), 540, 38);
             font.draw(batch, "" + waveNum + "/" + totalEnemyWaves, 615, 335);
@@ -379,12 +403,13 @@ public class GameScreen implements Screen {
 
                                 if (Intersector.overlapConvexPolygons(first.bounding, second.bounding)) {
                                     // Check bounding polygons first
-                                    if (CollisionChecker.collide(first.sprite.getBoundingRectangle(), second.sprite.getBoundingRectangle(), first.mask, second.mask)) {
+                                    //if (CollisionChecker.collide(first.sprite.getBoundingRectangle(), second.sprite.getBoundingRectangle(), first.mask, second.mask)) {
                                         for (int en = 0; en < enemyUnitsOnField.size(); en++) {
                                             //check if the collision is between base and enemy unit
                                             if (((first == enemyUnitsOnField.get(en).collidable) && (second == base.collidable)) || ((second == enemyUnitsOnField.get(en).collidable) && (first == base.collidable))) {
                                                 gameOver = base.doDamage(enemyUnitsOnField.get(en).collidable.damage);
                                                 first.colliding = true;
+                                                SmallExplosion.play();
                                                 //second.colliding = true;
                                                 //else enemy and bullet
                                             } else if ((first == enemyUnitsOnField.get(en).collidable) && (second.damage > 0)) { //Enemy units do - damage and bullets do + damage. This way one enemy doesnt take another out
@@ -395,7 +420,7 @@ public class GameScreen implements Screen {
                                                 second.colliding = true;
                                             }
                                         }
-                                    }
+                                    //}
                                 }  else {
                                     //second.colliding = false;
                                     //first.colliding = false;
@@ -543,7 +568,7 @@ public class GameScreen implements Screen {
                                 steamPoints+=(int)(towersOnField.get(i).getCost()/2);
                                 towersOnField.remove(i);
                                 map.playingField[dx][dy] = 1;
-                                System.out.println("Remove turret to heap x:" + dx + "  y:" + dy);
+                                //System.out.println("Remove turret to heap x:" + dx + "  y:" + dy);
                             }
 
                             //refund 50%
@@ -580,7 +605,7 @@ public class GameScreen implements Screen {
                             towersOnField.add(new TowerObject(tempTower.number, tempTower.getWidth(), tempTower.getHeight(), dx, dy,true));
                             //towersOnField.add((TowerObject)tempTower.clone());
                             map.playingField[dx][dy]=2;
-                            System.out.println("Added turret to heap x:" + dx + "  y:" + dy);
+                            //System.out.println("Added turret to heap x:" + dx + "  y:" + dy);
                             construction.play(0.4f);
 
                         }catch(Exception e){
@@ -630,5 +655,21 @@ public class GameScreen implements Screen {
     public void dispose() {
         // never called automatically
         batch.dispose();
+        game.dispose();
+        gameOverTex.dispose();
+        victoryTex.dispose();
+
+        wallTexture.dispose();
+        enemySpawnTexture.dispose();
+
+        //HUD
+        font.dispose();
+
+        //Sounds and music
+        victoryFanfare.dispose();
+        construction.dispose();
+        tollBell.dispose();
+        failed.dispose();
+        SmallExplosion.dispose();
     }
 }

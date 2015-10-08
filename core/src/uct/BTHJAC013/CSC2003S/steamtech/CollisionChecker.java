@@ -4,7 +4,7 @@ import com.badlogic.gdx.math.Rectangle;
 
 /**
  * A simple class to check collisions given the bounding boxes and the masks
- * Created by calvin on 2014/09/05.
+ * Created by calvin on 2014/09/05. Modified by Jacques Botha 27/09/2015
  */
 
 public class CollisionChecker {

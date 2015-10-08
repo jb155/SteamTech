@@ -12,24 +12,28 @@ import java.util.Scanner;
 public class EnemyUnit{
     private float HP;
     private int speed;
-    private int angle;
+    private float angle;
     private int damage;
     private int[]pos = new int[2];
     private int reward = 1;
+    private Route route;
+    private int flagCount = 0;
 
     public Collidable collidable;
 
-    public EnemyUnit(int num, int width, int height, int[] sp){
+    private long timeLastMoved = 0;
+
+    public EnemyUnit(int num, int width, int height, int[] sp, Route rt){
         try {
             pos[0] = sp[0]*30;
-            pos[1] = sp[1]*30+50;
+            pos[1] = sp[1]*30+50+5;
             Scanner sc = new Scanner(new FileReader("EnemyUnits/unit"+num+".txt"));
             //Sprite
             String readLine = sc.nextLine();
             collidable = new Collidable(readLine);
             collidable.sprite.setSize(width, height);
             collidable.sprite.setCenter(width / 2, height / 2);
-            collidable.sprite.setPosition(pos[0], pos[1]);
+            collidable.sprite.setPosition(pos[0]*30, pos[1]*30+50);
 
             //Set HP
             readLine = sc.nextLine();
@@ -47,6 +51,8 @@ public class EnemyUnit{
             readLine = sc.nextLine();
             reward = Integer.parseInt(readLine);
 
+            route = rt;
+
         }catch (IOException e){
             System.out.println(e);
         }
@@ -56,15 +62,31 @@ public class EnemyUnit{
         collidable.rotate(angle);
     }
 
-    public boolean tick(){
-        pos[0]+= (int) (speed * Math.sin(angle)+0.5);
-        pos[1]+= (int) (speed * Math.cos(angle)+0.5);
-        collidable.sprite.setPosition(pos[0],pos[1]);
-        collidable.bounding.setPosition(pos[0],pos[1]);
+    public boolean tick() {  //Moves unit into direction it is pointed
+        int rx = route.getX(flagCount)*30+5;
+        int ry = (route.getY(flagCount)*30+50+5);
 
-        if((HP<=0)||(pos[0]>660)||(collidable.colliding)){      //dead or outside screen
+        int x = pos[0] - rx;
+        int y = pos[1] - ry;
+
+        angle = (float) (Math.atan2(x, y) * 360 / (2 * Math.PI));
+
+        pos[1]-= (int) (Math.round(speed/2 * Math.cos(angle / 360 * (2 * Math.PI))));
+        pos[0]+= (int) (Math.round(-speed/2 * Math.sin(angle/360 * (2 * Math.PI))));
+
+
+        collidable.sprite.setPosition(pos[0], pos[1]);
+        collidable.bounding.setPosition(pos[0], pos[1]);
+
+        if (((pos[0]<=rx+1)&&(pos[0]>=rx-1))&&((pos[1]<=ry+1)&&(pos[1]>=ry-1))) {
+            flagCount++;
+        }
+
+        //System.out.println ("En\tx:" + pos[0] + "\ty:" + pos[1] + "\t angle:" + angle);
+
+        if ((HP <= 0) || (pos[0] > 660) || (collidable.colliding)) {      //dead or outside screen
             return false;
-        }else{
+        } else {
             return true;
         }
     }
