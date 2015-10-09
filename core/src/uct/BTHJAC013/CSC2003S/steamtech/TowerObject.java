@@ -53,6 +53,8 @@ public class TowerObject implements Cloneable{
 
     private Sound fireSound;
 
+    private int MinOrMax = 0;
+
     public TowerObject(int num, int width, int height){
         setup(num,width,height);
     }
@@ -254,7 +256,7 @@ public class TowerObject implements Cloneable{
             rof -= 50;
             radius += 0.2f;
             cost += 1;
-            damage += (int)level*0.5;
+            damage += damage*(int)level*0.5;
             level++;
 
             //new image

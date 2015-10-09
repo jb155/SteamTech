@@ -5,6 +5,6 @@ sounds/Shot.wav
 2
 300
 2
-1
+.35
 750
 3

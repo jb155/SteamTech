@@ -1,5 +1,5 @@
 EnemyUnits/heavyEnemy.png
-10
+12
 5
-1
-4
+2
+2

@@ -59,7 +59,7 @@ public class GameScreen implements Screen {
     private ArrayList<EnemyUnit> enemyUnitsOnField;
     private int totalEnemyWaves = 7;
     private int enemyWaveCount = 0;
-    private int waveGrowthNum = 2;
+    private int waveGrowthNum = 3;
     private int currentWaveNumber = 0;
     private int waveNum = 0;
     private int spawnRate = 1000;
@@ -277,7 +277,7 @@ public class GameScreen implements Screen {
                     //System.out.println("Spawn enemy\t" + randomNumber);
                 }
             } else {
-                if (waveNum >= totalEnemyWaves) {
+                if ((waveNum >= totalEnemyWaves)&&(enemyUnitsOnField.size()==0)) {
                     victory = true;
                 }
             }
@@ -292,10 +292,10 @@ public class GameScreen implements Screen {
             //go through enemies and check if dead (if they are...remove them and also render them
             for (int i = 0; i < enemyUnitsOnField.size(); i++) {
                 if (!enemyUnitsOnField.get(i).tick()) {
-                    explosions.add(new ExplosionEntity(0.3f,enemyUnitsOnField.get(i).getPos()[0],enemyUnitsOnField.get(i).getPos()[1]));
+                    explosions.add(new ExplosionEntity(0.3f,enemyUnitsOnField.get(i).getPos()[0],enemyUnitsOnField.get(i).getPos()[1]-5));
                     enemyUnitsOnField.remove(i);
                 }else if (enemyUnitsOnField.get(i).getHP()<1) {   //double check...cause prev one seems to miss one or two
-                    explosions.add(new ExplosionEntity(0.3f,enemyUnitsOnField.get(i).getPos()[0],enemyUnitsOnField.get(i).getPos()[1]));
+                    explosions.add(new ExplosionEntity(0.3f,enemyUnitsOnField.get(i).getPos()[0]-10,enemyUnitsOnField.get(i).getPos()[1]-5));
                     enemyUnitsOnField.remove(i);
                 }else {
                     enemyUnitsOnField.get(i).getSprite().draw(batch);

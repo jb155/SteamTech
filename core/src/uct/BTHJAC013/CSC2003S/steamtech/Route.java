@@ -11,9 +11,6 @@ public class Route {
     public Route() {
 
     }
-    public int getLength() {
-        return steps.size();
-    }
 
     public Step getStep(int index) {
         return (Step) steps.get(index);
@@ -27,9 +24,6 @@ public class Route {
         return getStep(index).y;
     }
 
-    public void appendStep(int x, int y) {
-        steps.add(new Step(x,y));
-    }
 
     public void prependStep(int x, int y) {
         steps.add(0, new Step(x, y));
@@ -39,9 +33,6 @@ public class Route {
         return steps.contains(new Step(x,y));
     }
 
-    public void popFrontStep(){
-        steps.remove(0);
-    }
 
     public class Step {
 

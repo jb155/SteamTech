@@ -125,9 +125,6 @@ public class Map {
             }
         }
     }
-    public boolean visited(int x, int y) {
-        return visited[x][y];
-    }
     public boolean blocked(int x, int y) {
         // if theres a unit at the location, then it's blocked
 

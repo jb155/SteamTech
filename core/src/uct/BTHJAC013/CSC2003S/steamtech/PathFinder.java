@@ -12,8 +12,6 @@ public class PathFinder {
     private SortedList open = new SortedList();
 
     private Map map;
-    private int maxSearchDistance;
-
     private Node[][] nodes;
 
     public PathFinder(Map map) {
@@ -29,8 +27,6 @@ public class PathFinder {
 
     public Route findPath(int sx, int sy, int tx, int ty) {
         // initial state for A*. The closed group is empty. Only the starting
-
-        // tile is in the open list and it'e're already there
         nodes[sx][sy].cost = 0;
         nodes[sx][sy].depth = 0;
         closed.clear();
@@ -39,13 +35,9 @@ public class PathFinder {
 
         nodes[tx][ty].parent = null;
 
-        // while we haven'n't exceeded our max search depth
         int maxDepth = 0;
         while ((open.size() != 0)) {
-            // pull out the first node in our open list, this is determined to
-
-            // be the most likely to be the next step based on our heuristic
-
+            //Pull first from open (probably the next thanks to heuristic)
             Node current = getFirstInOpen();
             if (current == nodes[tx][ty]) {
                 break;
@@ -54,47 +46,28 @@ public class PathFinder {
             removeFromOpen(current);
             addToClosed(current);
 
-            // search through all the neighbours of the current node evaluating
-
-            // them as next steps
-
+            //Goes through all the neighbours of the tile and selects best cost one
             for (int x=-1;x<2;x++) {
                 for (int y=-1;y<2;y++) {
-                    // not a neighbour, its the current tile
-
+                    //Checks if not current
                     if ((x == 0) && (y == 0)) {
                         continue;
                     }
 
-                    // if we're not allowing diaganol movement then only
-
-                    // one of x or y can be set
+                    //Not allowing for diag movement
                     if ((x != 0) && (y != 0)) {
                         continue;
                     }
 
-                    // determine the location of the neighbour and evaluate it
-
+                    //Determine the neighbour
                     int xp = x + current.x;
                     int yp = y + current.y;
 
                     if (isValidLocation(sx,sy,xp,yp)) {
-                        // the cost to get to this node is cost the current plus the movement
-
-                        // cost to reach this node. Note that the heursitic value is only used
-
-                        // in the sorted open list
-
-                        float nextStepCost = current.cost + getMovementCost(current.x, current.y, xp, yp);
+                       float nextStepCost = current.cost + getMovementCost(current.x, current.y, xp, yp);
                         Node neighbour = nodes[xp][yp];
-                        //map.pathFinderVisited(xp, yp);
 
-                        // if the new cost we've determined for this node is lower than
-
-                        // it has been previously makes sure the node hasn'e've
-                        // determined that there might have been a better path to get to
-
-                        // this node so it needs to be re-evaluated
+                        //If this node is cheaper than a prev, then un check the prev, sothat it can be re eval later if neded
 
                         if (nextStepCost < neighbour.cost) {
                             if (inOpenList(neighbour)) {
@@ -105,12 +78,7 @@ public class PathFinder {
                             }
                         }
 
-                        // if the node hasn't already been processed and discarded then
-
-                        // reset it's cost to our current cost and add it as a next possible
-
-                        // step (i.e. to the open list)
-
+                        //Step to the open list
                         if (!inOpenList(neighbour) && !(inClosedList(neighbour))) {
                             neighbour.cost = nextStepCost;
                             neighbour.heuristic = getHeuristicCost(xp, yp, tx, ty);
@@ -122,19 +90,13 @@ public class PathFinder {
             }
         }
 
-        // since we'e've run out of search
-        // there was no path. Just return null
-
+        //If we have run throgh aall of that and still havent got a parent...then there is no path...bail
         if (nodes[tx][ty].parent == null) {
             return null;
         }
 
-        // At this point we've definitely found a path so we can uses the parent
 
-        // references of the nodes to find out way from the target location back
-
-        // to the start recording the nodes on the way.
-
+        //If we hit this point we have found a route...so make one then
         Route route = new Route();
         Node target = nodes[tx][ty];
         while (target != nodes[sx][sy]) {
@@ -246,7 +208,8 @@ public class PathFinder {
 
             return depth;
         }
-        
+
+
         public int compareTo(Object other) {
             Node o = (Node) other;
 
